@@ -1,0 +1,15 @@
+{
+    "name": "ericmann/marmoset",
+    "description": "PHP demonstration of the infinite monkey theorem",
+    "require": {
+        "symfony/console": "^3.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Eric Mann",
+            "email": "eric@eamann.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
