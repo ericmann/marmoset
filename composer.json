@@ -11,5 +11,10 @@
             "email": "eric@eamann.com"
         }
     ],
-    "minimum-stability": "dev"
+    "minimum-stability": "dev",
+    "autoload": {
+        "classmap": [
+            "src"
+        ]
+    }
 }
