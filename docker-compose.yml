@@ -1,0 +1,7 @@
+version: '2'
+services:
+  php:
+    image: ericmann/php:7.0ts
+    volumes:
+      - .:/var/www/html
+    container_name: "phpts"
