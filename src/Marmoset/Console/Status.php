@@ -112,6 +112,8 @@ class Status
 	 * Update the current generation count and generation rate.
 	 *
 	 * @param int $generation
+	 * 
+	 * @return Status
 	 */
 	public function setGeneration( $generation )
 	{
@@ -125,12 +127,16 @@ class Status
 		if ( $now > ( $this->last + $this->redrawFreq ) ) {
 			$this->display();
 		}
+		
+		return $this;
 	}
 
 	/**
 	 * Set the monkeys' best guess at writing Shakespeare.
 	 *
 	 * @param string $best
+	 * 
+	 * @return Status
 	 */
 	public function setBest( $best )
 	{
@@ -139,6 +145,8 @@ class Status
 		if ( time() > ( $this->last + $this->redrawFreq ) ) {
 			$this->display();
 		}
+		
+		return $this;
 	}
 
 	/**
