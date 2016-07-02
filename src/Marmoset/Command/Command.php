@@ -23,6 +23,10 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Command extends SCommand
 {
+    const MUTATION_PROBABILITY = 0.01;
+
+    const CROSSOVER_PROBABILITY = 0.87;
+
     /**
      * @var Status
      */
@@ -107,13 +111,32 @@ class Command extends SCommand
         //   create two children
     }
 
-    protected function create_children($first, $second)
+    /**
+     * Create two child nodes given two parent nodes, with an inherent probability
+     * that the strings from the parents will crossover and/or mutate while creating
+     * the child nodes.
+     *
+     * @param $parent1
+     * @param $parent2
+     *
+     * @return array
+     */
+    protected function create_children(string $parent1, string $parent2)
     {
         // Crossover
+        if ($this->random_float() < self::CROSSOVER_PROBABILITY) {
+            list($child1, $child2) = $this->crossover($parent1, $parent2);
+        } else {
+            $child1 = $parent1;
+            $child2 = $parent2;
+        }
 
         // Mutate
+        if ($this->random_float() < self::MUTATION_PROBABILITY) $child1 = $this->mutate($child1);
+        if ($this->random_float() < self::MUTATION_PROBABILITY) $child2 = $this->mutate($child2);
 
         // Return children
+        return [$child1, $child2];
     }
 
     /**
