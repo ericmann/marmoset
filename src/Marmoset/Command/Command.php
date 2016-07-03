@@ -23,9 +23,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Command extends SCommand
 {
-    const MUTATION_PROBABILITY = 0.01;
+    const MUTATION_PROBABILITY = 0.50;
 
-    const CROSSOVER_PROBABILITY = 0.87;
+    const CROSSOVER_PROBABILITY = 0.85;
 
     /**
      * @var Status
@@ -36,6 +36,8 @@ class Command extends SCommand
      * @var array
      */
     protected $population;
+
+    protected $get_fitness;
 
     /**
      * Configure the CLI command we're going to run
@@ -93,22 +95,39 @@ class Command extends SCommand
         }
     }
 
+    /**
+     * Create a new generation given the existing entities and using their relative fitnesses to
+     * determine which monkeys are allowed to breed.
+     *
+     * @return array
+     */
     protected function create_next_generation()
     {
         // Max fitness
+        $maxFitness = array_reduce($this->population, function(float $max, string $current) {
+            return max($max, call_user_func($this->get_fitness, $current));
+        }, 0) + 1.0;
+
         // Sum of max minus fitness
+        $sumOfMaxMinusFitness = array_reduce($this->population, function(float $carry, string $current) use ($maxFitness) {
+            return $carry + ($maxFitness - call_user_func($this->get_fitness, $current));
+        }, 0);
 
-        //// if parallel
-        // foreach parallel range 1=>pop/2
-        //   findrandomparent
-        //   findrandomparent
-        //   create two children
+        $newPop = [];
+        if (false) {
+            // foreach parallel range 1=>pop/2
+            //   findrandomparent
+            //   findrandomparent
+            //   create two children
+        } else {
+            foreach (range(1, count($this->population) / 2) as $counter) {
+                $parent1 = $this->random_high_quality_parent($sumOfMaxMinusFitness, $maxFitness);
+                $parent2 = $this->random_high_quality_parent($sumOfMaxMinusFitness, $maxFitness);
+                $newPop = array_merge($newPop, $this->create_children($parent1, $parent2));
+            }
+        }
 
-        //// else
-        // foreach range 1=>pop/2
-        //   findrandomparent
-        //   findrandomparent
-        //   create two children
+        return $newPop;
     }
 
     /**
@@ -183,7 +202,7 @@ class Command extends SCommand
         $val = $this->random_float() * $sum;
 
         for ($i = 0; $i < count($this->population); $i++) {
-            $maxMinusFitness = $max - $this->population[ $i ];
+            $maxMinusFitness = $max - call_user_func($this->get_fitness, $this->population[ $i ]);
             if ($val < $maxMinusFitness) {
                 return $this->population[ $i ];
             }
@@ -214,6 +233,8 @@ class Command extends SCommand
          * Calculate the Euclidean distance of a test string vector from the previously-specified target vector.
          *
          * @param string $test
+         *
+         * @return float
          */
         return function (string $test) use ($target) {
             return array_reduce(range(0, strlen($target) - 1), function ($out, $i) use ($test, $target) {
@@ -245,6 +266,22 @@ class Command extends SCommand
     }
 
     /**
+     * Get the best member of the generation
+     *
+     * @return string
+     */
+    protected function best()
+    {
+        return array_reduce($this->population, function (string $best, string $current) {
+            if (call_user_func($this->get_fitness, $current) < call_user_func($this->get_fitness, $best)) {
+                return $current;
+            }
+
+            return $best;
+        }, "");
+    }
+
+    /**
      * Actually execute the command
      *
      * @param InputInterface $input
@@ -258,6 +295,7 @@ class Command extends SCommand
 
         // Set initial state
         $generation = 0;
+        $bestGenome = null;
         $target = <<<PHP
 To be or not to be, that is the question;
 Whether 'tis nobler in the mind to suffer
@@ -265,11 +303,30 @@ The slings and arrows of outrageous fortune,
 Or to take arms against a sea of troubles,
 And by opposing, end them.
 PHP;
+        $target = <<<PHP
+I love PHP!
+PHP;
         $this->get_fitness = $this->fitness($target);
         $this->population = iterator_to_array($this->random_population(200, strlen($target)));
 
+        $running = true;
         do {
+            // Move to the next generation
+            $generation += 1;
+            $this->population = $this->create_next_generation();
 
-        } while (false);
+            // If we've found the best iteration so far, update the UI
+            $bestSoFar = $this->best();
+            $this->status->setGeneration($generation)->setBest($bestSoFar);
+            if ( null === $bestGenome || call_user_func($this->get_fitness, $bestSoFar) < call_user_func($this->get_fitness, $bestGenome)) {
+                $bestGenome = $bestSoFar;
+
+                if (0 === call_user_func($this->get_fitness, $bestGenome)) {
+                    $running = false;
+                    $this->status->display();
+                }
+            }
+
+        } while ($running);
     }
 }

@@ -198,11 +198,12 @@ PHP;
             $header = true;
         }
 
+        $best = (string)$this->best;
         $gen = (string)$this->generation;
         $gps = (string)$this->generations_per_second;
 
         // Build the status string
-        $status .= "|" . str_repeat(' ', 77) . "|" . str_repeat(' ', 11 - strlen($gen)) . $gen . " |" . str_repeat(' ',
+        $status .= "| " . $best . str_repeat(' ', 75 - strlen($best) ) . " |" . str_repeat(' ', 11 - strlen($gen)) . $gen . " |" . str_repeat(' ',
                 12 - strlen($gps)) . $gps . " |\n";
 
         // Make sure we can overwrite previous lines
