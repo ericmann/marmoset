@@ -24,10 +24,6 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Command extends SCommand
 {
-    const MUTATION_PROBABILITY = 0.50;
-
-    const CROSSOVER_PROBABILITY = 0.85;
-
     /**
      * @var Status
      */
@@ -37,21 +33,6 @@ class Command extends SCommand
      * @var array
      */
     protected $population;
-
-    /**
-     * @var string
-     */
-    protected $ttarget = <<<PHP
-To be or not to be, that is the question;
-Whether 'tis nobler in the mind to suffer
-The slings and arrows of outrageous fortune,
-Or to take arms against a sea of troubles,
-And by opposing, end them.
-PHP;
-
-    protected $target = <<<PHP
-I love PHP!
-PHP;
 
     /**
      * Configure the CLI command we're going to run
@@ -128,54 +109,19 @@ PHP;
     protected function create_children(string $parent1, string $parent2)
     {
         // Crossover
-        if ($this->random_float() < self::CROSSOVER_PROBABILITY) {
-            list($child1, $child2) = $this->crossover($parent1, $parent2);
+        if (Marmoset\random_float() < Marmoset\CROSSOVER_PROBABILITY) {
+            list($child1, $child2) = Marmoset\crossover($parent1, $parent2);
         } else {
             $child1 = $parent1;
             $child2 = $parent2;
         }
 
         // Mutate
-        if ($this->random_float() < self::MUTATION_PROBABILITY) $child1 = $this->mutate($child1);
-        if ($this->random_float() < self::MUTATION_PROBABILITY) $child2 = $this->mutate($child2);
+        if (Marmoset\random_float() < Marmoset\MUTATION_PROBABILITY) $child1 = Marmoset\mutate($child1);
+        if (Marmoset\random_float() < Marmoset\MUTATION_PROBABILITY) $child2 = Marmoset\mutate($child2);
 
         // Return children
         return [$child1, $child2];
-    }
-
-    /**
-     * Generate a new tuple of children after exchanging part of the originals.
-     *
-     * @param string $first
-     * @param string $second
-     *
-     * @return array
-     */
-    protected function crossover(string $first, string $second)
-    {
-        $crossover_point = mt_rand(0, strlen($first) - 1);
-
-        $new_first = substr($first, 0, $crossover_point) . substr($second, $crossover_point);
-        $new_second = substr($second, 0, $crossover_point) . substr($first, $crossover_point);
-
-        return [$new_first, $new_second];
-    }
-
-    /**
-     * Return a mutated alternative to the specified genome.
-     *
-     * @param string $genome
-     *
-     * @return string
-     */
-    protected function mutate(string $genome)
-    {
-        $new_genome = $genome;
-        $upDown = mt_rand( 0, 10 ) < 5 ? -1 : 1;
-        $index = mt_rand( 0, strlen( $new_genome ) - 1 );
-        $new_genome[ $index ] = chr( ord( $genome[ $index ] ) + $upDown );
-
-        return $new_genome;
     }
 
     /**
@@ -186,7 +132,7 @@ PHP;
      */
     protected function random_high_quality_parent(float $sum, float $max)
     {
-        $val = $this->random_float() * $sum;
+        $val = Marmoset\random_float() * $sum;
 
         for ($i = 0; $i < count($this->population); $i++) {
             $maxMinusFitness = $max - $this->fitness($this->population[ $i ]);
@@ -198,16 +144,6 @@ PHP;
     }
 
     /**
-     * Return a random floating-point number (for maths)
-     *
-     * @return float
-     */
-    protected function random_float()
-    {
-        return mt_rand(0, mt_getrandmax() - 1) / mt_getrandmax();
-    }
-
-    /**
      * Calculate the Euclidean distance of a test string vector from the previously-specified target vector.
      *
      * @param string $test
@@ -216,8 +152,8 @@ PHP;
      */
     protected function fitness(string $test)
     {
-        return array_reduce(range(0, strlen($this->target) - 1), function ($out, $i) use ($test) {
-            $out += pow(ord($test[ $i ]) - ord($this->target[ $i ]), 2);
+        return array_reduce(range(0, strlen(Marmoset\TARGET) - 1), function ($out, $i) use ($test) {
+            $out += pow(ord($test[ $i ]) - ord(Marmoset\TARGET[ $i ]), 2);
 
             return $out;
         }, 0);
@@ -255,7 +191,7 @@ PHP;
         $generation = 0;
         $bestGenome = null;
 
-        $this->population = iterator_to_array(Marmoset\random_population(200, strlen($this->target)));
+        $this->population = iterator_to_array(Marmoset\random_population(200, strlen(Marmoset\TARGET)));
 
         $running = true;
         do {
