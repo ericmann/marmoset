@@ -119,3 +119,19 @@ function mutate(string $genome)
 
     return $new_genome;
 }
+
+/**
+ * Calculate the Euclidean distance of a test string vector from the previously-specified target vector.
+ *
+ * @param string $test
+ *
+ * @return float
+ */
+function fitness(string $test)
+{
+    return array_reduce(range(0, strlen(TARGET) - 1), function ($out, $i) use ($test) {
+        $out += pow(ord($test[ $i ]) - ord(TARGET[ $i ]), 2);
+
+        return $out;
+    }, 0);
+}

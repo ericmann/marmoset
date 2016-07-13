@@ -71,12 +71,12 @@ class Command extends SCommand
     {
         // Max fitness
         $maxFitness = array_reduce($this->population, function(float $max, string $current) {
-            return max($max, $this->fitness($current));
+            return max($max, Marmoset\fitness($current));
         }, 0) + 1.0;
 
         // Sum of max minus fitness
         $sumOfMaxMinusFitness = array_reduce($this->population, function(float $carry, string $current) use ($maxFitness) {
-            return $carry + ($maxFitness - $this->fitness($current));
+            return $carry + ($maxFitness - Marmoset\fitness($current));
         }, 0);
 
         $newPop = [];
@@ -135,28 +135,12 @@ class Command extends SCommand
         $val = Marmoset\random_float() * $sum;
 
         for ($i = 0; $i < count($this->population); $i++) {
-            $maxMinusFitness = $max - $this->fitness($this->population[ $i ]);
+            $maxMinusFitness = $max - Marmoset\fitness($this->population[ $i ]);
             if ($val < $maxMinusFitness) {
                 return $this->population[ $i ];
             }
             $val -= $maxMinusFitness;
         }
-    }
-
-    /**
-     * Calculate the Euclidean distance of a test string vector from the previously-specified target vector.
-     *
-     * @param string $test
-     *
-     * @return float
-     */
-    protected function fitness(string $test)
-    {
-        return array_reduce(range(0, strlen(Marmoset\TARGET) - 1), function ($out, $i) use ($test) {
-            $out += pow(ord($test[ $i ]) - ord(Marmoset\TARGET[ $i ]), 2);
-
-            return $out;
-        }, 0);
     }
 
     /**
@@ -167,7 +151,7 @@ class Command extends SCommand
     protected function best()
     {
         return array_reduce($this->population, function (string $best, string $current) {
-            if ($this->fitness($current) < $this->fitness($best)) {
+            if (Marmoset\fitness($current) < Marmoset\fitness($best)) {
                 return $current;
             }
 
@@ -202,10 +186,10 @@ class Command extends SCommand
             // If we've found the best iteration so far, update the UI
             $bestSoFar = $this->best();
             $this->status->setGeneration($generation)->setBest($bestSoFar);
-            if ( null === $bestGenome || $this->fitness($bestSoFar) < $this->fitness($bestGenome)) {
+            if ( null === $bestGenome || Marmoset\fitness($bestSoFar) < Marmoset\fitness($bestGenome)) {
                 $bestGenome = $bestSoFar;
 
-                if (0 === $this->fitness($bestGenome)) {
+                if (0 === Marmoset\fitness($bestGenome)) {
                     $running = false;
                     $this->status->display();
                 }
