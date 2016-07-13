@@ -89,39 +89,11 @@ class Command extends SCommand
             foreach (range(1, count($this->population) / 2) as $counter) {
                 $parent1 = $this->random_high_quality_parent($sumOfMaxMinusFitness, $maxFitness);
                 $parent2 = $this->random_high_quality_parent($sumOfMaxMinusFitness, $maxFitness);
-                $newPop = array_merge($newPop, $this->create_children($parent1, $parent2));
+                $newPop = array_merge($newPop, Marmoset\create_children($parent1, $parent2));
             }
         }
 
         return $newPop;
-    }
-
-    /**
-     * Create two child nodes given two parent nodes, with an inherent probability
-     * that the strings from the parents will crossover and/or mutate while creating
-     * the child nodes.
-     *
-     * @param $parent1
-     * @param $parent2
-     *
-     * @return array
-     */
-    protected function create_children(string $parent1, string $parent2)
-    {
-        // Crossover
-        if (Marmoset\random_float() < Marmoset\CROSSOVER_PROBABILITY) {
-            list($child1, $child2) = Marmoset\crossover($parent1, $parent2);
-        } else {
-            $child1 = $parent1;
-            $child2 = $parent2;
-        }
-
-        // Mutate
-        if (Marmoset\random_float() < Marmoset\MUTATION_PROBABILITY) $child1 = Marmoset\mutate($child1);
-        if (Marmoset\random_float() < Marmoset\MUTATION_PROBABILITY) $child2 = Marmoset\mutate($child2);
-
-        // Return children
-        return [$child1, $child2];
     }
 
     /**

@@ -86,6 +86,34 @@ function random_float()
 }
 
 /**
+ * Create two child nodes given two parent nodes, with an inherent probability
+ * that the strings from the parents will crossover and/or mutate while creating
+ * the child nodes.
+ *
+ * @param $parent1
+ * @param $parent2
+ *
+ * @return array
+ */
+function create_children(string $parent1, string $parent2)
+{
+    // Crossover
+    if (random_float() < CROSSOVER_PROBABILITY) {
+        list($child1, $child2) = crossover($parent1, $parent2);
+    } else {
+        $child1 = $parent1;
+        $child2 = $parent2;
+    }
+
+    // Mutate
+    if (random_float() < MUTATION_PROBABILITY) $child1 = mutate($child1);
+    if (random_float() < MUTATION_PROBABILITY) $child2 = mutate($child2);
+
+    // Return children
+    return [$child1, $child2];
+}
+
+/**
  * Generate a new tuple of children after exchanging part of the originals.
  *
  * @param string $first
