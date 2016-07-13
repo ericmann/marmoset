@@ -10,6 +10,7 @@
 
 namespace EAMann\Marmoset\Command;
 
+use EAMann\Marmoset;
 use EAMann\Marmoset\Console\Status;
 use Symfony\Component\Console\Command\Command as SCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -37,13 +38,16 @@ class Command extends SCommand
      */
     protected $population;
 
-    /*protected $target = <<<PHP
+    /**
+     * @var string
+     */
+    protected $ttarget = <<<PHP
 To be or not to be, that is the question;
 Whether 'tis nobler in the mind to suffer
 The slings and arrows of outrageous fortune,
 Or to take arms against a sea of troubles,
 And by opposing, end them.
-PHP;*/
+PHP;
 
     protected $target = <<<PHP
 I love PHP!
@@ -75,36 +79,7 @@ PHP;
     {
         $this->status->setGeneration($generation)->setBest($best);
     }
-
-    /**
-     * Create a random population with a specific number of members
-     *
-     * @param int $count
-     * @param int $length
-     *
-     * @return \Generator
-     */
-    protected function random_population(int $count, int $length)
-    {
-        while ($count--) {
-            yield implode('', iterator_to_array($this->random_genome($length)));
-        }
-    }
-
-    /**
-     * Create a random genome given a character length.
-     *
-     * @param int $length
-     *
-     * @return \Generator
-     */
-    protected function random_genome(int $length)
-    {
-        while ($length--) {
-            yield $this->validChars()[ mt_rand(0, 99) ];
-        }
-    }
-
+    
     /**
      * Create a new generation given the existing entities and using their relative fitnesses to
      * determine which monkeys are allowed to breed.
@@ -249,26 +224,6 @@ PHP;
     }
 
     /**
-     * Build up the array of allowed characters in our system.
-     *
-     * @return array
-     */
-    protected function validChars()
-    {
-        static $_validChars;
-
-        if (!$_validChars) {
-            $_validChars[] = chr(10);
-            $_validChars[] = chr(13);
-            for ($i = 2, $pos = 32; $i < 97; $i++, $pos++) {
-                $_validChars[] = chr($pos);
-            }
-        }
-
-        return $_validChars;
-    }
-
-    /**
      * Get the best member of the generation
      *
      * @return string
@@ -300,7 +255,7 @@ PHP;
         $generation = 0;
         $bestGenome = null;
 
-        $this->population = iterator_to_array($this->random_population(200, strlen($this->target)));
+        $this->population = iterator_to_array(Marmoset\random_population(200, strlen($this->target)));
 
         $running = true;
         do {

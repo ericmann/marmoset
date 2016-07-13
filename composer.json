@@ -15,6 +15,7 @@
     ],
     "minimum-stability": "dev",
     "autoload": {
+        "files": ["src/Marmoset/functions.php"],
         "classmap": [
             "src"
         ]
