@@ -186,7 +186,9 @@ class Command extends SCommand
     protected function mutate(string $genome)
     {
         $new_genome = $genome;
-        $new_genome[ mt_rand(0, strlen($new_genome) - 1) ] = $this->validChars()[ mt_rand(0, 99) ];
+        $upDown = mt_rand( 0, 10 ) < 5 ? -1 : 1;
+        $index = mt_rand( 0, strlen( $new_genome ) - 1 );
+        $new_genome[ $index ] = chr( ord( $genome[ $index ] ) + $upDown );
 
         return $new_genome;
     }
