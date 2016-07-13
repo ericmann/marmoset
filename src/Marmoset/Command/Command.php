@@ -37,7 +37,17 @@ class Command extends SCommand
      */
     protected $population;
 
-    protected $get_fitness;
+    /*protected $target = <<<PHP
+To be or not to be, that is the question;
+Whether 'tis nobler in the mind to suffer
+The slings and arrows of outrageous fortune,
+Or to take arms against a sea of troubles,
+And by opposing, end them.
+PHP;*/
+
+    protected $target = <<<PHP
+I love PHP!
+PHP;
 
     /**
      * Configure the CLI command we're going to run
@@ -105,12 +115,12 @@ class Command extends SCommand
     {
         // Max fitness
         $maxFitness = array_reduce($this->population, function(float $max, string $current) {
-            return max($max, call_user_func($this->get_fitness, $current));
+            return max($max, $this->fitness($current));
         }, 0) + 1.0;
 
         // Sum of max minus fitness
         $sumOfMaxMinusFitness = array_reduce($this->population, function(float $carry, string $current) use ($maxFitness) {
-            return $carry + ($maxFitness - call_user_func($this->get_fitness, $current));
+            return $carry + ($maxFitness - $this->fitness($current));
         }, 0);
 
         $newPop = [];
@@ -204,7 +214,7 @@ class Command extends SCommand
         $val = $this->random_float() * $sum;
 
         for ($i = 0; $i < count($this->population); $i++) {
-            $maxMinusFitness = $max - call_user_func($this->get_fitness, $this->population[ $i ]);
+            $maxMinusFitness = $max - $this->fitness($this->population[ $i ]);
             if ($val < $maxMinusFitness) {
                 return $this->population[ $i ];
             }
@@ -223,28 +233,19 @@ class Command extends SCommand
     }
 
     /**
-     * Partial function to calculate the fitness of a given string.
+     * Calculate the Euclidean distance of a test string vector from the previously-specified target vector.
      *
-     * @param string $target
+     * @param string $test
      *
-     * @return callable
+     * @return float
      */
-    protected function fitness(string $target)
+    protected function fitness(string $test)
     {
-        /**
-         * Calculate the Euclidean distance of a test string vector from the previously-specified target vector.
-         *
-         * @param string $test
-         *
-         * @return float
-         */
-        return function (string $test) use ($target) {
-            return array_reduce(range(0, strlen($target) - 1), function ($out, $i) use ($test, $target) {
-                $out += pow(ord($test[ $i ]) - ord($target[ $i ]), 2);
+        return array_reduce(range(0, strlen($this->target) - 1), function ($out, $i) use ($test) {
+            $out += pow(ord($test[ $i ]) - ord($this->target[ $i ]), 2);
 
-                return $out;
-            }, 0);
-        };
+            return $out;
+        }, 0);
     }
 
     /**
@@ -275,7 +276,7 @@ class Command extends SCommand
     protected function best()
     {
         return array_reduce($this->population, function (string $best, string $current) {
-            if (call_user_func($this->get_fitness, $current) < call_user_func($this->get_fitness, $best)) {
+            if ($this->fitness($current) < $this->fitness($best)) {
                 return $current;
             }
 
@@ -298,18 +299,8 @@ class Command extends SCommand
         // Set initial state
         $generation = 0;
         $bestGenome = null;
-        $target = <<<PHP
-To be or not to be, that is the question;
-Whether 'tis nobler in the mind to suffer
-The slings and arrows of outrageous fortune,
-Or to take arms against a sea of troubles,
-And by opposing, end them.
-PHP;
-        $target = <<<PHP
-I love PHP!
-PHP;
-        $this->get_fitness = $this->fitness($target);
-        $this->population = iterator_to_array($this->random_population(200, strlen($target)));
+
+        $this->population = iterator_to_array($this->random_population(200, strlen($this->target)));
 
         $running = true;
         do {
@@ -320,10 +311,10 @@ PHP;
             // If we've found the best iteration so far, update the UI
             $bestSoFar = $this->best();
             $this->status->setGeneration($generation)->setBest($bestSoFar);
-            if ( null === $bestGenome || call_user_func($this->get_fitness, $bestSoFar) < call_user_func($this->get_fitness, $bestGenome)) {
+            if ( null === $bestGenome || $this->fitness($bestSoFar) < $this->fitness($bestGenome)) {
                 $bestGenome = $bestSoFar;
 
-                if (0 === call_user_func($this->get_fitness, $bestGenome)) {
+                if (0 === $this->fitness($bestGenome)) {
                     $running = false;
                     $this->status->display();
                 }
