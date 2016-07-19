@@ -10,7 +10,7 @@
 
 namespace EAMann\Marmoset;
 
-class ParallelEnumerator implements IEnumerator
+class ParallelEnumerable extends Enumerable
 {
 
 }
