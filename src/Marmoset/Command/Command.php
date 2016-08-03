@@ -80,7 +80,7 @@ class Command extends SCommand
         }, 0);
 
         $newPop = [];
-        if (false) {
+        if (getenv('ASYNC')) {
             // foreach parallel range 1=>pop/2
             //   findrandomparent
             //   findrandomparent
