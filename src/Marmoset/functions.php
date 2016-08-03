@@ -51,13 +51,15 @@ function validChars()
  *
  * @param int $length
  *
- * @return \Generator
+ * @return string
  */
 function random_genome(int $length)
 {
-    while ($length--) {
-        yield validChars()[ mt_rand(0, 99) ];
+    $genome = '';
+    for($i = 0; $i < $length; $i++) {
+        $genome .= validChars()[ mt_rand(0, 99)];
     }
+    return $genome;
 }
 
 /**
@@ -66,13 +68,15 @@ function random_genome(int $length)
  * @param int $count
  * @param int $length
  *
- * @return \Generator
+ * @return array
  */
 function random_population(int $count, int $length)
 {
-    while ($count--) {
-        yield implode('', iterator_to_array(random_genome($length)));
+    $population = array();
+    for($i = 0; $i < $count; $i++) {
+        $population[] = random_genome($length);
     }
+    return $population;
 }
 
 /**
