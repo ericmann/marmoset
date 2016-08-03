@@ -147,7 +147,12 @@ function mutate(string $genome)
     $new_genome = $genome;
     $upDown = mt_rand( 0, 10 ) < 5 ? -1 : 1;
     $index = mt_rand( 0, strlen( $new_genome ) - 1 );
-    $new_genome[ $index ] = chr( ord( $genome[ $index ] ) + $upDown );
+
+    $new_char = chr( ord( $genome[ $index ] ) + $upDown );
+//var_dump( $new_char );
+    if ( in_array( $new_char, validChars() ) ) {
+        $new_genome[ $index ] = $new_char;
+    }
 
     return $new_genome;
 }
@@ -162,6 +167,11 @@ function mutate(string $genome)
 function fitness(string $test)
 {
     static $cache = [];
+
+    // Prevent memory explosions by flushing every 100 generations
+    if ( count( $cache ) > (200 * 100) ) {
+        $cache = [];
+    }
 
     if (isset($cache[ $test ])) {
         return $cache[ $test ];
