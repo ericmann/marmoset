@@ -23,7 +23,7 @@ And by opposing, end them.
 PHP;
 
 const TARGET = <<<PHP
-I love PHP!
+To be or not to be, that is the question;
 PHP;
 
 /**
@@ -161,9 +161,19 @@ function mutate(string $genome)
  */
 function fitness(string $test)
 {
-    return array_reduce(range(0, strlen(TARGET) - 1), function ($out, $i) use ($test) {
+    static $cache = [];
+
+    if (isset($cache[ $test ])) {
+        return $cache[ $test ];
+    }
+
+    $fitness = array_reduce(range(0, strlen(TARGET) - 1), function ($out, $i) use ($test) {
         $out += pow(ord($test[ $i ]) - ord(TARGET[ $i ]), 2);
 
         return $out;
     }, 0);
+
+    $cache[ $test ] = $fitness;
+
+    return $fitness;
 }
