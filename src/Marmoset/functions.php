@@ -10,20 +10,16 @@
 
 namespace EAMann\Marmoset;
 
-const MUTATION_PROBABILITY = 0.50;
+const MUTATION_PROBABILITY = 0.01;
 
-const CROSSOVER_PROBABILITY = 0.85;
+const CROSSOVER_PROBABILITY = 0.87;
 
-const TTARGET = <<<PHP
+const TARGET = <<<PHP
 To be or not to be, that is the question;
 Whether 'tis nobler in the mind to suffer
 The slings and arrows of outrageous fortune,
 Or to take arms against a sea of troubles,
 And by opposing, end them.
-PHP;
-
-const TARGET = <<<PHP
-To be or not to be, that is the question;
 PHP;
 
 /**
@@ -37,7 +33,7 @@ function validChars()
 
     if (!$_validChars) {
         $_validChars[] = chr(10);
-        $_validChars[] = chr(13);
+
         for ($i = 2, $pos = 32; $i < 97; $i++, $pos++) {
             $_validChars[] = chr($pos);
         }
@@ -57,8 +53,9 @@ function random_genome(int $length)
 {
     $genome = '';
     for($i = 0; $i < $length; $i++) {
-        $genome .= validChars()[ mt_rand(0, 99)];
+        $genome .= validChars()[ mt_rand(1, count( validChars() )) - 1];
     }
+
     return $genome;
 }
 
@@ -148,11 +145,16 @@ function mutate(string $genome)
     $upDown = mt_rand( 0, 10 ) < 5 ? -1 : 1;
     $index = mt_rand( 0, strlen( $new_genome ) - 1 );
 
-    $new_char = chr( ord( $genome[ $index ] ) + $upDown );
-//var_dump( $new_char );
-    if ( in_array( $new_char, validChars() ) ) {
-        $new_genome[ $index ] = $new_char;
+    $new_char = ord( $genome[ $index ] ) + $upDown;
+
+    if ( $new_char === 31 || $new_char === 127 ) {
+        $new_char = 10;
+    } else if ( $new_char === 9 ) {
+        $new_char = 126;
+    } else if ( $new_char === 11 ) {
+        $new_char = 32;
     }
+    $new_genome[ $index ] = chr( $new_char );
 
     return $new_genome;
 }
@@ -169,7 +171,7 @@ function fitness(string $test)
     static $cache = [];
 
     // Prevent memory explosions by flushing every 100 generations
-    if ( count( $cache ) > (200 * 100) ) {
+    if ( count( $cache ) > (200 * 1000) ) {
         $cache = [];
     }
 

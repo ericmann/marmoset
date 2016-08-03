@@ -208,10 +208,11 @@ PHP;
             $status .= $row . "\n";
         }
 
-        $status .= "\nGeneration: " . $gen;
-        $status .= "\nGen / sec:  " . $gps . "\n";
+        $status .= "\nGeneration:   " . $gen;
+        $status .= "\nGen / sec:    " . $gps;
+        $status .= "\nBest Fitness: " . \EAMann\Marmoset\fitness( $this->best ) . "\n";
 
-        $this->formatLineCount = $lines + 3;
+        $this->formatLineCount = $lines + 4;
 
         // Overwrite all the things
         $this->overwrite($status);

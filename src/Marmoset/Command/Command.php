@@ -147,7 +147,7 @@ class Command extends SCommand
         $generation = 0;
         $bestGenome = null;
 
-        $this->population = Marmoset\random_population(200, strlen(Marmoset\TARGET));
+        $this->population = Marmoset\random_population(30, strlen(Marmoset\TARGET));
 
         $running = true;
         do {
