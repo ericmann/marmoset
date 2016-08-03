@@ -81,10 +81,30 @@ class Command extends SCommand
 
         $newPop = [];
         if (getenv('ASYNC')) {
-            // foreach parallel range 1=>pop/2
-            //   findrandomparent
-            //   findrandomparent
-            //   create two children
+
+            $pool = new \Pool(8, 'EAMann\Marmoset\Worker', [$this->population, $sumOfMaxMinusFitness, $maxFitness]);
+            $threads = [];
+
+
+            foreach (range(1, count($this->population) / 2) as $counter) {
+                $threaded = new Marmoset\Job();
+                $threads[] = $threaded;
+                $pool->submit($threaded);
+            }
+
+
+            while($pool->collect(function($job) use (&$newPop) {
+                if ( $job->isGarbage() ) {
+                    foreach( $job->worker->children as $child ) {
+                        $newPop[] = $child;
+                    }
+                }
+                return $job->isGarbage();
+            })) continue;
+
+            $pool->shutdown();
+
+            $newPop = array_slice( $newPop, 0, 30 );
         } else {
             foreach (range(1, count($this->population) / 2) as $counter) {
                 $parent1 = $this->random_high_quality_parent($sumOfMaxMinusFitness, $maxFitness);
@@ -97,6 +117,8 @@ class Command extends SCommand
     }
 
     /**
+     * Select a parent at random, based on their fitness
+     *
      * @param float $sum Sum of (max fitness - fitness) for all potential parents
      * @param float $max Max fitness across all potential parents
      *
