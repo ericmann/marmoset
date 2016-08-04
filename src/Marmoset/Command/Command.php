@@ -80,7 +80,7 @@ class Command extends SCommand
         }, 0);
 
         if (getenv('ASYNC')) {
-            $pool = new Marmoset\Troop(3, Marmoset\Worker::class, [$this->population, $sumOfMaxMinusFitness, $maxFitness]);
+            $pool = new Marmoset\Troop(2, Marmoset\Worker::class, [$this->population, $sumOfMaxMinusFitness, $maxFitness]);
 
             foreach (range(1, count($this->population) / 2) as $counter) {
                 $pool->submit(new Marmoset\Job());
@@ -88,8 +88,9 @@ class Command extends SCommand
 
             $children = $pool->process();
 
+            // Because sometimes the thread pool exits early and evicts a child ... backfill
             while( count($children) < count($this->population)) {
-                $children[] = $this->population[rand(0, count($this->population) - 1)];
+                $children[] = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
             }
 
             return (array) $children;
