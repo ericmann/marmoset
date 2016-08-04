@@ -191,7 +191,7 @@ class Status
                                            -+syyyyyosyyyyyo:`      
                                            :+oosso: `ossssss:      
                                              
-|--------------------------------------------------------------------------------------------------------|\n\n
+|--------------------------------------------------------------------------------------------------------|\n\n\n\n\n
 PHP;
             $header = true;
         }
@@ -200,19 +200,14 @@ PHP;
         $gen = (string)$this->generation;
         $gps = (string)$this->generations_per_second;
 
-        $best_rows = explode( "\n", $best );
+        $append = $best . "\n";
+        $append .= "\nGeneration:   " . $gen;
+        $append .= "\nGen / sec:    " . $gps;
+        $append .= "\nBest Fitness: " . \EAMann\Marmoset\fitness( $this->best ) . "\n";
 
-        $lines = count( $best_rows );
+        $status .= $append;
 
-        foreach( $best_rows as $row ) {
-            $status .= $row . "\n";
-        }
-
-        $status .= "\nGeneration:   " . $gen;
-        $status .= "\nGen / sec:    " . $gps;
-        $status .= "\nBest Fitness: " . \EAMann\Marmoset\fitness( $this->best ) . "\n";
-
-        $this->formatLineCount = $lines + 4;
+        $this->formatLineCount = substr_count( $append, "\n" );
 
         // Overwrite all the things
         $this->overwrite($status);
