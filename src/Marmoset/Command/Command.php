@@ -79,61 +79,29 @@ class Command extends SCommand
             return $carry + ($maxFitness - Marmoset\fitness($current));
         }, 0);
 
-        $newPop = [];
         if (getenv('ASYNC')) {
-
-            $pool = new \Pool(8, 'EAMann\Marmoset\Worker', [$this->population, $sumOfMaxMinusFitness, $maxFitness]);
-            $threads = [];
-
+            $job = new Marmoset\Worker();
 
             foreach (range(1, count($this->population) / 2) as $counter) {
-                $threaded = new Marmoset\Job();
-                $threads[] = $threaded;
-                $pool->submit($threaded);
+                $task = new Marmoset\Job($this->population, $sumOfMaxMinusFitness, $maxFitness);
+                $job->stack($task);
             }
 
+            $job->start();
 
-            while($pool->collect(function($job) use (&$newPop) {
-                if ( $job->isGarbage() ) {
-                    foreach( $job->worker->children as $child ) {
-                        $newPop[] = $child;
-                    }
-                }
-                return $job->isGarbage();
-            })) continue;
-
-            $pool->shutdown();
-
-            $newPop = array_slice( $newPop, 0, 30 );
+            // Wait for the job to be finished
+            $job->shutdown();
+            return (array) $job->children;
         } else {
+            $newPop = [];
+
             foreach (range(1, count($this->population) / 2) as $counter) {
-                $parent1 = $this->random_high_quality_parent($sumOfMaxMinusFitness, $maxFitness);
-                $parent2 = $this->random_high_quality_parent($sumOfMaxMinusFitness, $maxFitness);
+                $parent1 = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
+                $parent2 = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
                 $newPop = array_merge($newPop, Marmoset\create_children($parent1, $parent2));
             }
-        }
 
-        return $newPop;
-    }
-
-    /**
-     * Select a parent at random, based on their fitness
-     *
-     * @param float $sum Sum of (max fitness - fitness) for all potential parents
-     * @param float $max Max fitness across all potential parents
-     *
-     * @return string
-     */
-    protected function random_high_quality_parent(float $sum, float $max)
-    {
-        $val = Marmoset\random_float() * $sum;
-
-        for ($i = 0; $i < count($this->population); $i++) {
-            $maxMinusFitness = $max - Marmoset\fitness($this->population[ $i ]);
-            if ($val < $maxMinusFitness) {
-                return $this->population[ $i ];
-            }
-            $val -= $maxMinusFitness;
+            return $newPop;
         }
     }
 

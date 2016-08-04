@@ -87,6 +87,30 @@ function random_float()
 }
 
 /**
+ * Select a parent at random, based on their fitness
+ *
+ * @param array $population Population to scan
+ * @param float $sum        Sum of (max fitness - fitness) for all potential parents
+ * @param float $max        Max fitness across all potential parents
+ *
+ * @return string
+ */
+function random_high_quality_parent(array $population, float $sum, float $max)
+{
+    return 1;
+    $val = random_float() * $sum;
+return $val;
+    for ($i = 0; $i < count($population); $i++) {
+
+        $maxMinusFitness = $max - fitness($population[ $i ]);
+        if ($val < $maxMinusFitness) {
+            return $population[ $i ];
+        }
+        $val -= $maxMinusFitness;
+    }
+}
+
+/**
  * Create two child nodes given two parent nodes, with an inherent probability
  * that the strings from the parents will crossover and/or mutate while creating
  * the child nodes.

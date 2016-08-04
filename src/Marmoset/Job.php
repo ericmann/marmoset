@@ -12,12 +12,36 @@ namespace EAMann\Marmoset;
 
 class Job extends \Threaded
 {
+    public function __construct($population, $sum, $max)
+    {
+        $this->population = $population;
+        $this->sum = $sum;
+        $this->max = $max;
+    }
+
     public function run()
     {
         // Get parents
-        $parent1 = $this->worker->random_high_quality_parent();
-        $parent2 = $this->worker->random_high_quality_parent();
+        $parent1 = $this->random_high_quality_parent();
+        $parent2 = $this->random_high_quality_parent();
 
-        $this->worker->create_children($parent1, $parent2);
+        $this->worker->addChildren(create_children($parent1, $parent2));
+    }
+
+    /**
+     * Select a parent at random, based on their fitness.
+     *
+     * @return string
+     */
+    public function random_high_quality_parent() {
+        $val = random_float() * $this->sum;
+
+        for ($i = 0; $i < count($this->population); $i++) {
+            $maxMinusFitness = $this->max - fitness($this->population[ $i ]);
+            if ($val < $maxMinusFitness) {
+                return $this->population[ $i ];
+            }
+            $val -= $maxMinusFitness;
+        }
     }
 }
