@@ -80,18 +80,19 @@ class Command extends SCommand
         }, 0);
 
         if (getenv('ASYNC')) {
-            $job = new Marmoset\Worker();
+            $pool = new Marmoset\Troop(2, Marmoset\Worker::class);
 
             foreach (range(1, count($this->population) / 2) as $counter) {
-                $task = new Marmoset\Job($this->population, $sumOfMaxMinusFitness, $maxFitness);
-                $job->stack($task);
+                $pool->submit(new Marmoset\Job($this->population, $sumOfMaxMinusFitness, $maxFitness));
             }
 
-            $job->start();
+            $children = $pool->process();
 
-            // Wait for the job to be finished
-            $job->shutdown();
-            return (array) $job->children;
+            while( count($children) < count($this->population)) {
+                $children[] = $this->population[rand(0, count($this->population) - 1)];
+            }
+
+            return (array) $children;
         } else {
             $newPop = [];
 

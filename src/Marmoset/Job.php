@@ -25,7 +25,11 @@ class Job extends \Threaded
         $parent1 = $this->random_high_quality_parent();
         $parent2 = $this->random_high_quality_parent();
 
-        $this->worker->addChildren(create_children($parent1, $parent2));
+        $this->test = "tst";
+        $children = create_children($parent1, $parent2);
+        $this->child1 = $children[0];
+        $this->child2 = $children[1];
+        $this->setGarbage();
     }
 
     /**
