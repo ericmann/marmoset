@@ -12,15 +12,10 @@ namespace EAMann\Marmoset;
 
 class Worker extends \Worker
 {
-    public $children = [];
-
-    /**
-     * @param array $children
-     */
-    public function addChildren($children)
+    public function __construct($population, $sum, $max)
     {
-        foreach($children as $child) {
-            $this->children[] = $child;
-        }
+        $this->population = $population;
+        $this->sum = $sum;
+        $this->max = $max;
     }
 }
