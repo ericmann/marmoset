@@ -12,14 +12,16 @@ namespace EAMann\Marmoset;
 
 class Job extends \Threaded
 {
-
     public function run()
     {
         // Get parents
         $parent1 = $this->random_high_quality_parent();
         $parent2 = $this->random_high_quality_parent();
 
-        $this->worker->addChildren(create_children($parent1, $parent2));
+        $children = create_children($parent1, $parent2);
+        $this->child1 = $children[0];
+        $this->child2 = $children[1];
+        $this->setGarbage();
     }
 
     /**
