@@ -2,9 +2,7 @@
     "name": "ericmann/marmoset",
     "description": "PHP demonstration of the infinite monkey theorem",
     "require": {
-        "symfony/console": "^3.1",
-        "icicleio/concurrent": "^0.3.0",
-        "icicleio/icicle": "^0.9.6"
+        "symfony/console": "^3.1"
     },
     "license": "MIT",
     "authors": [
