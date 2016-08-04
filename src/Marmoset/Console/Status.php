@@ -156,6 +156,7 @@ class Status
     public function display()
     {
         static $header = false;
+        static $overwrite_lines = 0;
 
         $this->last = time();
         $status = '';
@@ -191,7 +192,7 @@ class Status
                                            -+syyyyyosyyyyyo:`      
                                            :+oosso: `ossssss:      
                                              
-|--------------------------------------------------------------------------------------------------------|\n\n\n\n\n
+|--------------------------------------------------------------------------------------------------------|\n\n
 PHP;
             $header = true;
         }
@@ -207,7 +208,8 @@ PHP;
 
         $status .= $append;
 
-        $this->formatLineCount = substr_count( $append, "\n" );
+        $this->formatLineCount = $overwrite_lines;
+        $overwrite_lines = substr_count( $append, "\n" );
 
         // Overwrite all the things
         $this->overwrite($status);
