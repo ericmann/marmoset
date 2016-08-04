@@ -80,10 +80,10 @@ class Command extends SCommand
         }, 0);
 
         if (getenv('ASYNC')) {
-            $job = new Marmoset\Worker();
+            $job = new Marmoset\Worker($this->population, $sumOfMaxMinusFitness, $maxFitness);
 
             foreach (range(1, count($this->population) / 2) as $counter) {
-                $task = new Marmoset\Job($this->population, $sumOfMaxMinusFitness, $maxFitness);
+                $task = new Marmoset\Job();
                 $job->stack($task);
             }
 

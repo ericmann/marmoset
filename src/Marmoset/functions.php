@@ -97,9 +97,8 @@ function random_float()
  */
 function random_high_quality_parent(array $population, float $sum, float $max)
 {
-    return 1;
     $val = random_float() * $sum;
-return $val;
+
     for ($i = 0; $i < count($population); $i++) {
 
         $maxMinusFitness = $max - fitness($population[ $i ]);

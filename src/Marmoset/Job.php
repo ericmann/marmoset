@@ -12,12 +12,6 @@ namespace EAMann\Marmoset;
 
 class Job extends \Threaded
 {
-    public function __construct($population, $sum, $max)
-    {
-        $this->population = $population;
-        $this->sum = $sum;
-        $this->max = $max;
-    }
 
     public function run()
     {
@@ -34,12 +28,12 @@ class Job extends \Threaded
      * @return string
      */
     public function random_high_quality_parent() {
-        $val = random_float() * $this->sum;
+        $val = random_float() * $this->worker->sum;
 
-        for ($i = 0; $i < count($this->population); $i++) {
-            $maxMinusFitness = $this->max - fitness($this->population[ $i ]);
+        for ($i = 0; $i < count($this->worker->population); $i++) {
+            $maxMinusFitness = $this->worker->max - fitness($this->worker->population[ $i ]);
             if ($val < $maxMinusFitness) {
-                return $this->population[ $i ];
+                return $this->worker->population[ $i ];
             }
             $val -= $maxMinusFitness;
         }
