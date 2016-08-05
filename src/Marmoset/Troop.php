@@ -16,6 +16,10 @@ class Troop extends \Pool
 
     public function process()
     {
+        $this->resize(2);
+
+        $this->children = [];
+
         // Run this loop as long as we have jobs in the pool
         while ($this->collect(function (Job $job) {
                 // If a job was marked as done collect its results
@@ -27,8 +31,7 @@ class Troop extends \Pool
                 return $job->isGarbage();
             }))continue;
 
-        // All jobs are done, so we can shutdown the pool
-        $this->shutdown();
+        $this->resize(0);
 
         return $this->children;
     }

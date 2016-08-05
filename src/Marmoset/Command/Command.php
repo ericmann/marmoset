@@ -35,6 +35,11 @@ class Command extends SCommand
     protected $population;
 
     /**
+     * @var Marmoset\Troop
+     */
+    protected $pool;
+
+    /**
      * Configure the CLI command we're going to run
      */
     protected function configure()
@@ -80,13 +85,11 @@ class Command extends SCommand
         }, 0);
 
         if (getenv('ASYNC')) {
-            $pool = new Marmoset\Troop(2, Marmoset\Worker::class);
-
             foreach (range(1, count($this->population) / 2) as $counter) {
-                $pool->submit(new Marmoset\Job($this->population, $sumOfMaxMinusFitness, $maxFitness));
+                $this->pool->submit(new Marmoset\Job($this->population, $sumOfMaxMinusFitness, $maxFitness));
             }
 
-            $children = $pool->process();
+            $children = $this->pool->process();
 
             // Because sometimes the thread pool exits early and evicts a child ... backfill
             while( count($children) < count($this->population)) {
@@ -141,6 +144,10 @@ class Command extends SCommand
 
         $this->population = Marmoset\random_population(30, strlen(Marmoset\TARGET));
 
+        if (getenv('ASYNC')) {
+            $this->pool = new Marmoset\Troop(2, Marmoset\Worker::class);
+        }
+
         $running = true;
         do {
             // Move to the next generation
@@ -154,6 +161,10 @@ class Command extends SCommand
                 $bestGenome = $bestSoFar;
 
                 if (0 === Marmoset\fitness($bestGenome)) {
+                    if (getenv('ASYNC')) {
+                        $this->pool->shutdown();
+                    }
+
                     $running = false;
                     $this->status->display();
                 }
