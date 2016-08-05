@@ -16,7 +16,7 @@ class Troop extends \Pool
 
     public function process()
     {
-        $this->resize(2);
+        $this->resize(30);
 
         $this->children = [];
 
