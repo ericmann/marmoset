@@ -12,10 +12,5 @@ namespace EAMann\Marmoset;
 
 class Worker extends \Worker
 {
-    public function __construct($population, $sum, $max)
-    {
-        $this->population = $population;
-        $this->sum = $sum;
-        $this->max = $max;
-    }
+
 }
