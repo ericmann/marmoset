@@ -86,18 +86,31 @@ class Command extends SCommand
 
         if (getenv('ASYNC')) {
             $workers = [];
-            $chunks = array_chunk(range(1, count($this->population) / 2), 3);
-            for ($i = 1; $i < count($chunks); ++$i) {
-                $workers[$i] = Marmoset\KernelRunner::call('\EAMann\Marmoset\generation_kernel', [$this->population, $sumOfMaxMinusFitness, $maxFitness]);
+
+            foreach (range(1, 2) as $threadCount) {
+                array_push(
+                    $workers,
+                    Marmoset\KernelRunner::call(
+                        $this->population,
+                        $sumOfMaxMinusFitness,
+                        $maxFitness,
+                        function ($pop, $sum, $max) {
+                            $newPop = [];
+                            foreach (range(1, 7) as $counter) {
+                                $newPop = array_merge($newPop, Marmoset\generation_kernel($pop, $sum, $max));
+                            }
+
+                            return $newPop;
+                        })
+                );
             }
 
             // Run once on the main thread
             $children = Marmoset\generation_kernel($this->population, $sumOfMaxMinusFitness, $maxFitness);
 
             // Wait for the threads to complete
-            for ($i = 1 ; $i < 3; ++$i) {
-                $workers[$i]->join();
-                $children = array_merge($children, $workers[$i]->result);
+            foreach($workers as $worker) {
+                $children = array_merge($children, $worker->getResult());
             }
 
             return $children;
@@ -150,10 +163,6 @@ class Command extends SCommand
 
         $this->population = Marmoset\random_population(30, strlen(Marmoset\TARGET));
 
-        if (getenv('ASYNC')) {
-            $this->pool = new Marmoset\Troop(2, Marmoset\Worker::class);
-        }
-
         $running = true;
         do {
             // Move to the next generation
@@ -167,10 +176,6 @@ class Command extends SCommand
                 $bestGenome = $bestSoFar;
 
                 if (0 === Marmoset\fitness($bestGenome)) {
-                    if (getenv('ASYNC')) {
-                        $this->pool->shutdown();
-                    }
-
                     $running = false;
                     $this->status->display();
                 }

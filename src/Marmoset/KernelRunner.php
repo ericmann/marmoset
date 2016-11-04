@@ -4,23 +4,26 @@ namespace EAMann\Marmoset;
 
 class KernelRunner extends \Thread {
 
-    private $method;
-    private $params;
-    private $result;
-    private $joined;
+    private   $population;
+    private   $sumOfMaxMinusFitness;
+    private   $maxFitness;
+    protected $reducer;
+    private   $result;
 
     /**
      * Provide a passthrough to call_user_func_array
      *
-     * @param callable $method
-     * @param array    $params
+     * @param array    $population
+     * @param float    $sumOfMaxMinusFitness
+     * @param float    $maxFitness
+     * @param callable $reducer
      */
-    public function __construct(callable $method, $params)
+    public function __construct($population, $sumOfMaxMinusFitness, $maxFitness, $reducer)
     {
-        $this->method = $method;
-        $this->params = $params;
-        $this->result = null;
-        $this->joined = false;
+        $this->population = $population;
+        $this->sumOfMaxMinusFitness = $sumOfMaxMinusFitness;
+        $this->maxFitness = $maxFitness;
+        $this->reducer = $reducer;
     }
 
     /**
@@ -28,37 +31,35 @@ class KernelRunner extends \Thread {
      */
     public function run()
     {
-        $this->result = ($this->method)(...$this->params);
+        $this->synchronized(function() {
+            $this->result = (array) ($this->reducer)($this->population, $this->sumOfMaxMinusFitness, $this->maxFitness);
+            $this->notify();
+        });
     }
 
     /**
      * Static method to create your threads from functions ...
      *
-     * @param callable $method
-     * @param array    $params
+     * @param array    $population
+     * @param float    $sumOfMaxMinusFitness
+     * @param float    $maxFitness
+     * @param callable $reducer
      *
      * @return KernelRunner
      */
-    public static function call($method, $params)
+    public static function call($population, $sumOfMaxMinusFitness, $maxFitness, $reducer)
     {
-        $thread = new self($method, $params);
+        $thread = new self($population, $sumOfMaxMinusFitness, $maxFitness, $reducer);
         if($thread->start()){
             return $thread;
         }
     }
 
-    /**
-     * Do whatever, result stored in $this->result, don't try to join twice
-     *
-     * @return mixed
-     */
-    public function join()
-    {
-        if (!$this->joined) {
-            $this->joined = true;
-            parent::join();
-        }
-
-        return $this->result;
+    public function getResult() {
+        return $this->synchronized(function(){
+            while (!$this->result)
+                $this->wait();
+            return $this->result;
+        });
     }
 }
