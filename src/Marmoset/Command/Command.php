@@ -85,25 +85,27 @@ class Command extends SCommand
         }, 0);
 
         if (getenv('ASYNC')) {
-            foreach (range(1, count($this->population) / 2) as $counter) {
-                $this->pool->submit(new Marmoset\Job($this->population, $sumOfMaxMinusFitness, $maxFitness));
+            $workers = [];
+            $chunks = array_chunk(range(1, count($this->population) / 2), 3);
+            for ($i = 1; $i < count($chunks); ++$i) {
+                $workers[$i] = Marmoset\KernelRunner::call('\EAMann\Marmoset\generation_kernel', [$this->population, $sumOfMaxMinusFitness, $maxFitness]);
             }
 
-            $children = $this->pool->process();
+            // Run once on the main thread
+            $children = Marmoset\generation_kernel($this->population, $sumOfMaxMinusFitness, $maxFitness);
 
-            // Because sometimes the thread pool exits early and evicts a child ... backfill
-            while( count($children) < count($this->population)) {
-                $children[] = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
+            // Wait for the threads to complete
+            for ($i = 1 ; $i < 3; ++$i) {
+                $workers[$i]->join();
+                $children = array_merge($children, $workers[$i]->result);
             }
 
-            return (array) $children;
+            return $children;
         } else {
             $newPop = [];
 
             foreach (range(1, count($this->population) / 2) as $counter) {
-                $parent1 = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
-                $parent2 = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
-                $newPop = array_merge($newPop, Marmoset\create_children($parent1, $parent2));
+                $newPop = array_merge($newPop, Marmoset\generation_kernel($this->population, $sumOfMaxMinusFitness, $maxFitness));
             }
 
             return $newPop;
@@ -118,6 +120,10 @@ class Command extends SCommand
     protected function best()
     {
         return array_reduce($this->population, function (string $best, string $current) {
+            if ( "" == $best ) {
+                return $current;
+            }
+
             if (Marmoset\fitness($current) < Marmoset\fitness($best)) {
                 return $current;
             }

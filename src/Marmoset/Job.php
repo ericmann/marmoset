@@ -28,7 +28,7 @@ class Job extends \Threaded
         $children = create_children($parent1, $parent2);
         $this->child1 = $children[0];
         $this->child2 = $children[1];
-        $this->setGarbage();
+        //$this->setGarbage();
     }
 
     /**

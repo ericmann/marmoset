@@ -212,3 +212,20 @@ function fitness(string $test)
 
     return $fitness;
 }
+
+/**
+ * Kernel to create a pair of children given a set of parents.
+ *
+ * @param array $population
+ * @param float $sumOfMaxMinusFitness
+ * @param float $maxFitness
+ *
+ * @return array
+ */
+function generation_kernel($population, $sumOfMaxMinusFitness, $maxFitness)
+{
+    $parent1 = random_high_quality_parent((array) $population, $sumOfMaxMinusFitness, $maxFitness);
+    $parent2 = random_high_quality_parent((array) $population, $sumOfMaxMinusFitness, $maxFitness);
+
+    return create_children($parent1, $parent2);
+}
