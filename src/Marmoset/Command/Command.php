@@ -85,25 +85,40 @@ class Command extends SCommand
         }, 0);
 
         if (getenv('ASYNC')) {
-            foreach (range(1, count($this->population) / 2) as $counter) {
-                $this->pool->submit(new Marmoset\Job($this->population, $sumOfMaxMinusFitness, $maxFitness));
+            $workers = [];
+
+            foreach (range(1, 2) as $threadCount) {
+                array_push(
+                    $workers,
+                    Marmoset\KernelRunner::call(
+                        $this->population,
+                        $sumOfMaxMinusFitness,
+                        $maxFitness,
+                        function ($pop, $sum, $max) {
+                            $newPop = [];
+                            foreach (range(1, 7) as $counter) {
+                                $newPop = array_merge($newPop, Marmoset\generation_kernel($pop, $sum, $max));
+                            }
+
+                            return $newPop;
+                        })
+                );
             }
 
-            $children = $this->pool->process();
+            // Run once on the main thread
+            $children = Marmoset\generation_kernel($this->population, $sumOfMaxMinusFitness, $maxFitness);
 
-            // Because sometimes the thread pool exits early and evicts a child ... backfill
-            while( count($children) < count($this->population)) {
-                $children[] = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
+            // Wait for the threads to complete
+            foreach($workers as $worker) {
+                $children = array_merge($children, $worker->getResult());
             }
 
-            return (array) $children;
+            return $children;
         } else {
             $newPop = [];
 
             foreach (range(1, count($this->population) / 2) as $counter) {
-                $parent1 = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
-                $parent2 = Marmoset\random_high_quality_parent($this->population, $sumOfMaxMinusFitness, $maxFitness);
-                $newPop = array_merge($newPop, Marmoset\create_children($parent1, $parent2));
+                $newPop = array_merge($newPop, Marmoset\generation_kernel($this->population, $sumOfMaxMinusFitness, $maxFitness));
             }
 
             return $newPop;
@@ -118,6 +133,10 @@ class Command extends SCommand
     protected function best()
     {
         return array_reduce($this->population, function (string $best, string $current) {
+            if ( "" == $best ) {
+                return $current;
+            }
+
             if (Marmoset\fitness($current) < Marmoset\fitness($best)) {
                 return $current;
             }
@@ -144,10 +163,6 @@ class Command extends SCommand
 
         $this->population = Marmoset\random_population(30, strlen(Marmoset\TARGET));
 
-        if (getenv('ASYNC')) {
-            $this->pool = new Marmoset\Troop(2, Marmoset\Worker::class);
-        }
-
         $running = true;
         do {
             // Move to the next generation
@@ -161,10 +176,6 @@ class Command extends SCommand
                 $bestGenome = $bestSoFar;
 
                 if (0 === Marmoset\fitness($bestGenome)) {
-                    if (getenv('ASYNC')) {
-                        $this->pool->shutdown();
-                    }
-
                     $running = false;
                     $this->status->display();
                 }
