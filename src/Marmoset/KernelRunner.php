@@ -31,10 +31,7 @@ class KernelRunner extends \Thread {
      */
     public function run()
     {
-        $this->synchronized(function() {
-            $this->result = (array) ($this->reducer)($this->population, $this->sumOfMaxMinusFitness, $this->maxFitness);
-            $this->notify();
-        });
+        $this->result = (array) ($this->reducer)($this->population, $this->sumOfMaxMinusFitness, $this->maxFitness);
     }
 
     /**
