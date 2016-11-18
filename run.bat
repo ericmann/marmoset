@@ -1,5 +1,5 @@
 docker run --rm -t^
-  -v %cd%:/var/www/html"^
+  -v %cd%:/var/www/html^
   -c 2^
   --cpuset-cpus="0-1"^
   -m 2g^
